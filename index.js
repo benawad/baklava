@@ -146,7 +146,7 @@ app.use(
 const server = createServer(app);
 
 models.sequelize.sync().then(() =>
-  server.listen(3000, () => {
+  server.listen(3030, () => {
     new SubscriptionServer(
       {
         execute,
