@@ -8,19 +8,22 @@ import { createServer } from 'http';
 import { execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import _ from 'lodash';
-import DataLoader from 'dataloader';
 import passport from 'passport';
 import FacebookStrategy from 'passport-facebook';
+import joinMonsterAdapt from 'join-monster-graphql-tools-adapter';
 
 import typeDefs from './schema';
 import resolvers from './resolvers';
 import models from './models';
 import { createTokens, refreshTokens } from './auth';
+import joinMonsterMetadata from './joinMonsterMetadata';
 
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
+
+joinMonsterAdapt(schema, joinMonsterMetadata);
 
 const SECRET = 'aslkdjlkaj10830912039jlkoaiuwerasdjflkasd';
 
@@ -106,22 +109,6 @@ app.use(
   }),
 );
 
-const batchSuggestions = async (keys, { Suggestion }) => {
-  // keys = [1, 2, 3 ..., 13]
-  const suggestions = await Suggestion.findAll({
-    raw: true,
-    where: {
-      boardId: {
-        $in: keys,
-      },
-    },
-  });
-  // suggestion = [{text:'hi', boardId: 1}, {text: 'bye', boardId: 2}, {text: 'bye2'. boardId: 2}]
-  const gs = _.groupBy(suggestions, 'boardId');
-  // gs = {1: [{text:'hi', boardId: 1}], 2: [{text: 'bye', boardId: 2}, {text: 'bye2'. boardId: 2}]}
-  return keys.map(k => gs[k] || []);
-};
-
 app.use(
   '/graphql',
   bodyParser.json(),
@@ -131,7 +118,6 @@ app.use(
       models,
       SECRET,
       user: req.user,
-      suggestionLoader: new DataLoader(keys => batchSuggestions(keys, models)),
     },
   })),
 );

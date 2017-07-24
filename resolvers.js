@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { PubSub } from 'graphql-subscriptions';
 import _ from 'lodash';
+import joinMonster from 'join-monster';
 
 import { requiresAuth, requiresAdmin } from './permissions';
 import { refreshTokens, tryLogin } from './auth';
@@ -14,32 +15,6 @@ export default {
     userAdded: {
       subscribe: () => pubsub.asyncIterator(USER_ADDED),
     },
-  },
-  User: {
-    boards: ({ id }, args, { models }) =>
-      models.Board.findAll({
-        where: {
-          owner: id,
-        },
-      }),
-    suggestions: ({ id }, args, { models }) =>
-      models.Suggestion.findAll({
-        where: {
-          creatorId: id,
-        },
-      }),
-  },
-  Board: {
-    suggestions: ({ id }, args, { suggestionLoader }) =>
-      suggestionLoader.load(id),
-  },
-  Suggestion: {
-    creator: ({ creatorId }, args, { models }) =>
-      models.User.findOne({
-        where: {
-          id: creatorId,
-        },
-      }),
   },
   Query: {
     allUsers: requiresAuth.createResolver((parent, args, { models }) => models.User.findAll()),
@@ -67,18 +42,19 @@ export default {
           creatorId,
         },
       }),
+    getBoard: (parent, args, { models }, info) =>
+      joinMonster(info, args, sql =>
+        models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT }),
+      ),
   },
 
   Mutation: {
     updateUser: (parent, { username, newUsername }, { models }) =>
       models.User.update({ username: newUsername }, { where: { username } }),
-    deleteUser: (parent, args, { models }) =>
-      models.User.destroy({ where: args }),
-    createBoard: requiresAdmin.createResolver((parent, args, { models }) =>
-      models.Board.create(args),
-    ),
-    createSuggestion: (parent, args, { models }) =>
-      models.Suggestion.create(args),
+    deleteUser: (parent, args, { models }) => models.User.destroy({ where: args }),
+    createBoard: (parent, args, { models }) => models.Board.create(args),
+    createSuggestion: (parent, args, { models, user }) =>
+      models.Suggestion.create({ ...args, creatorId: user.id }),
     createUser: async (parent, args, { models }) => {
       const user = args;
       user.password = 'idk';
@@ -97,7 +73,7 @@ export default {
       localAuth.password = password;
       return models.LocalAuth.create({
         ...localAuth,
-        user_id: createdUser.id,
+        userId: createdUser.id,
       });
     },
     login: async (parent, { email, password }, { models, SECRET }) =>
