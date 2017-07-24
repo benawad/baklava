@@ -20,6 +20,7 @@ export default `
   type User {
     id: Int!
     username: String
+    email: String
     createdAt: String!
     updatedAt: String! 
     boards: [Board!]!
@@ -44,7 +45,7 @@ export default `
     deleteUser(username: String!): Int!
     createBoard(owner: Int!, name: String): Board!
     createSuggestion(creatorId: Int!, text: String, boardId: Int!): Suggestion!
-    register(username: String!, email: String!, password: String!, isAdmin: Boolean): User!
+    register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): AuthPayload!
     createUser(username: String!): User!
     refreshTokens(token: String!, refreshToken: String!): AuthPayload!

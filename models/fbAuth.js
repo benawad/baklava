@@ -1,11 +1,11 @@
 export default (sequelize, DataTypes) => {
-  const FbAuth = sequelize.define('fb_auth', {
-    fb_id: DataTypes.STRING,
-    display_name: DataTypes.STRING,
+  const FbAuth = sequelize.define('fbAuth', {
+    fbId: DataTypes.STRING,
+    displayName: DataTypes.STRING,
   });
 
   FbAuth.associate = (models) => {
-    FbAuth.belongsTo(models.User, { foreignKey: 'user_id' });
+    FbAuth.belongsTo(models.User, { foreignKey: 'userId' });
   };
 
   return FbAuth;

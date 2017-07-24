@@ -89,7 +89,7 @@ export default {
       return userAdded;
     },
     register: async (parent, args, { models }) => {
-      const user = _.pick(args, ['username', 'isAdmin']);
+      const user = _.pick(args, 'username');
       const localAuth = _.pick(args, ['email', 'password']);
       const passwordPromise = bcrypt.hash(localAuth.password, 12);
       const createUserPromise = models.User.create(user);
