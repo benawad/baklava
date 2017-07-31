@@ -1,3 +1,3 @@
 # baklava
 
-Web app like Trello for suggestions.
+[Learn how this was coded](https://youtu.be/LW20Rk7LGbk)
