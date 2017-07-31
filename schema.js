@@ -39,12 +39,13 @@ export default `
     userBoards(owner: Int!): [Board!]!
     userSuggestions(creatorId: String!): [Suggestion!]!
     getBoard(boardId: Int!): Board
+    allBoards: [Board!]!
   }
 
   type Mutation {
     updateUser(username: String!, newUsername: String!): [Int!]!
     deleteUser(username: String!): Int!
-    createBoard(owner: Int!, name: String): Board!
+    createBoard(name: String): Board!
     createSuggestion(text: String, boardId: Int!): Suggestion!
     register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): AuthPayload!

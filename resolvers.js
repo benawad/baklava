@@ -46,13 +46,23 @@ export default {
       joinMonster(info, args, sql =>
         models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT }),
       ),
+    allBoards: (parent, args, { models }, info) =>
+      joinMonster(info, args, sql =>
+        models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT }),
+      ),
   },
 
   Mutation: {
     updateUser: (parent, { username, newUsername }, { models }) =>
       models.User.update({ username: newUsername }, { where: { username } }),
     deleteUser: (parent, args, { models }) => models.User.destroy({ where: args }),
-    createBoard: (parent, args, { models }) => models.Board.create(args),
+    createBoard: async (parent, args, { models, user }) => {
+      const board = await models.Board.create({ ...args, owner: user.id });
+      return {
+        ...board.dataValues,
+        suggestions: [],
+      };
+    },
     createSuggestion: (parent, args, { models, user }) =>
       models.Suggestion.create({ ...args, creatorId: user.id }),
     createUser: async (parent, args, { models }) => {
