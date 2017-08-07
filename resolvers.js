@@ -53,6 +53,10 @@ export default {
   },
 
   Mutation: {
+    voteOnSuggestion: async (parent, { id }, { models, user }) => {
+      await models.Vote.create({ suggestionId: id, userId: user.id });
+      return true;
+    },
     updateUser: (parent, { username, newUsername }, { models }) =>
       models.User.update({ username: newUsername }, { where: { username } }),
     deleteUser: (parent, args, { models }) => models.User.destroy({ where: args }),
@@ -63,8 +67,13 @@ export default {
         suggestions: [],
       };
     },
-    createSuggestion: (parent, args, { models, user }) =>
-      models.Suggestion.create({ ...args, creatorId: user.id }),
+    createSuggestion: async (parent, args, { models, user }) => {
+      const s = await models.Suggestion.create({ ...args, creatorId: user.id });
+      return {
+        ...s.dataValues,
+        votes: 0,
+      };
+    },
     createUser: async (parent, args, { models }) => {
       const user = args;
       user.password = 'idk';

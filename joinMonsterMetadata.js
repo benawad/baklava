@@ -9,6 +9,12 @@ export default {
   Suggestion: {
     sqlTable: 'suggestions',
     uniqueKey: 'id',
+    fields: {
+      votes: {
+        sqlExpr: () =>
+          '(select count(*) from votes where "suggestion"."id" = votes."suggestionId")',
+      },
+    },
   },
   Board: {
     sqlTable: 'boards',

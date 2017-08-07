@@ -7,6 +7,7 @@ export default `
   type Suggestion {
     id: Int!
     text: String!
+    votes: Int!
     creator: User!
   }
 
@@ -43,6 +44,7 @@ export default `
   }
 
   type Mutation {
+    voteOnSuggestion(id: Int!): Boolean!
     updateUser(username: String!, newUsername: String!): [Int!]!
     deleteUser(username: String!): Int!
     createBoard(name: String): Board!
