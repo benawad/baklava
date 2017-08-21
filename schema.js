@@ -1,7 +1,12 @@
 export default `
 
+  type NewVoteCount {
+    suggestionId: Int!
+    incrementAmount: Int!
+  }
+
   type Subscription {
-    userAdded: User!
+    voteHappened: NewVoteCount!
   }
 
   type Suggestion {

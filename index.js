@@ -7,15 +7,12 @@ import jwt from 'jsonwebtoken';
 import { createServer } from 'http';
 import { execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import _ from 'lodash';
-import passport from 'passport';
-import FacebookStrategy from 'passport-facebook';
 import joinMonsterAdapt from 'join-monster-graphql-tools-adapter';
 
 import typeDefs from './schema';
 import resolvers from './resolvers';
 import models from './models';
-import { createTokens, refreshTokens } from './auth';
+import { refreshTokens } from './auth';
 import joinMonsterMetadata from './joinMonsterMetadata';
 
 const schema = makeExecutableSchema({
@@ -28,55 +25,6 @@ joinMonsterAdapt(schema, joinMonsterMetadata);
 const SECRET = 'aslkdjlkaj10830912039jlkoaiuwerasdjflkasd';
 
 const app = express();
-
-passport.use(
-  new FacebookStrategy(
-    {
-      clientID: 'client_id',
-      clientSecret: 'client_secret',
-      callbackURL: 'https://8fc528a5.ngrok.io/auth/facebook/callback',
-    },
-    async (accessToken, refreshToken, profile, cb) => {
-      // 2 cases
-      // #1 first time login
-      // #2 other times
-      const { id, displayName } = profile;
-      // []
-      const fbUsers = await models.FbAuth.findAll({
-        limit: 1,
-        where: { fb_id: id },
-      });
-
-      console.log(fbUsers);
-      console.log(profile);
-
-      if (!fbUsers.length) {
-        const user = await models.User.create();
-        const fbUser = await models.FbAuth.create({
-          fb_id: id,
-          display_name: displayName,
-          user_id: user.id,
-        });
-        fbUsers.push(fbUser);
-      }
-
-      cb(null, fbUsers[0]);
-    },
-  ),
-);
-
-app.use(passport.initialize());
-
-app.get('/flogin', passport.authenticate('facebook'));
-
-app.get(
-  '/auth/facebook/callback',
-  passport.authenticate('facebook', { session: false }),
-  async (req, res) => {
-    const [token, refreshToken] = await createTokens(req.user, SECRET);
-    res.redirect(`http://localhost:8080/home?token=${token}&refreshToken=${refreshToken}`);
-  },
-);
 
 const addUser = async (req, res, next) => {
   const token = req.headers['x-token'];
@@ -106,6 +54,7 @@ app.use(
   '/graphiql',
   graphiqlExpress({
     endpointURL: '/graphql',
+    subscriptionsEndpoint: 'ws://localhost:3030/subscriptions',
   }),
 );
 
